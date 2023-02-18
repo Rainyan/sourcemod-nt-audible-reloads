@@ -9,6 +9,7 @@
 #define PLUGIN_VERSION "0.1.0"
 
 #define NEO_MAX_PLAYERS 32
+#define NEO_MAX_WEPNAME_STRLEN 19
 #define VTABLE_OFFSET_RELOAD 235
 
 DynamicHook dh = null;
@@ -108,7 +109,7 @@ public void OnEntityCreated(int entity)
     {
         return;
     }
-    char classname[32];
+    char classname[NEO_MAX_WEPNAME_STRLEN + 1];
     if (!GetEdictClassname(entity, classname, sizeof(classname)))
     {
         return;
@@ -134,7 +135,7 @@ bool GetReloadSoundOfWeapon(int weapon, char[] out_sound, const int out_sound_ma
         return false;
     }
 
-    char classname[32]; // TODO: max weaponname length
+    char classname[NEO_MAX_WEPNAME_STRLEN + 1];
     if (!GetEdictClassname(weapon, classname, sizeof(classname)))
     {
         return false;
