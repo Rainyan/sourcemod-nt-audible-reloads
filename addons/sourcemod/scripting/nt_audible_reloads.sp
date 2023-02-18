@@ -183,7 +183,7 @@ int FilterUniqueValueFromArray(const int[] arr, int num_values, int unique_value
 // (ie. has enough ammo, is allowed to reload...).
 // Note: if you need to debug this with print statements, the print to chat sound channel
 // triggering at the exact same time can actually cut off the sound effect;
-// PrintToServer may be more useful for inside this detour with regard to audio debug.
+// PrintToServer may be more useful inside this detour with regard to audio debug.
 public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
 {
     if (!hReloadSuccessful.Value)
@@ -220,7 +220,8 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
     {
         return MRES_Ignored;
     }
-
+    // TODO: what is the non-audible placeholder value, -1?
+    // this extra alloc could probably be refactored out using the appropriate placeholders.
     int[] audience_sans_owner = new int[num_audience - 1];
     // Filter the gun owner, because they'll already hear their own reload
     num_audience = FilterUniqueValueFromArray(audience, num_audience, owner, audience_sans_owner);
