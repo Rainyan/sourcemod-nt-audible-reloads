@@ -6,7 +6,7 @@
 
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.2.0"
+#define PLUGIN_VERSION "0.2.1"
 
 #define NEO_MAX_PLAYERS 32
 #define NEO_MAX_WEPNAME_STRLEN 19
@@ -146,11 +146,14 @@ bool GetReloadSoundOfWeapon(const char[] weapon_classname, char[] out_sound, con
     {
         if (StrEqual(weapon_classname, weapons_primary[i]))
         {
-            return strcopy(
-                out_sound,
-                out_sound_maxlen,
-                g_sReloadSounds_Primary[i]
-            ) > 0;
+            return (
+                strlen(g_sReloadSounds_Primary[i]) > 0 &&
+                strcopy(
+                    out_sound,
+                    out_sound_maxlen,
+                    g_sReloadSounds_Primary[i]
+                ) > 0
+            );
         }
     }
 
@@ -158,11 +161,14 @@ bool GetReloadSoundOfWeapon(const char[] weapon_classname, char[] out_sound, con
     {
         if (StrEqual(weapon_classname, weapons_secondary[i]))
         {
-            return strcopy(
-                out_sound,
-                out_sound_maxlen,
-                g_sReloadSounds_Secondary[i]
-            ) > 0;
+            return (
+                strlen(g_sReloadSounds_Secondary[i]) > 0 &&
+                strcopy(
+                    out_sound,
+                    out_sound_maxlen,
+                    g_sReloadSounds_Secondary[i]
+                ) > 0
+            );
         }
     }
 
