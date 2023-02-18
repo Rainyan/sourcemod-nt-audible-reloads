@@ -135,8 +135,9 @@ public void OnEntityCreated(int entity)
     }
 }
 
-// For a given Neotokyo weapon edict, passes the corresponding reload sound by reference.
-// Returns boolean of whether a reload sound was found for the weapon.
+// For a given Neotokyo weapon classname, pass the corresponding reload sound by reference.
+// Return boolean of whether an emittable reload sound was found for the weapon.
+// This returns false for the supa7, because its shell reload is already world-audible.
 bool GetReloadSoundOfWeapon(const char[] weapon_classname, char[] out_sound, const int out_sound_maxlen)
 {
     int i;
