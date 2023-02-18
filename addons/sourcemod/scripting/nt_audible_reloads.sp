@@ -6,7 +6,7 @@
 
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.2.1"
+#define PLUGIN_VERSION "0.3.0"
 
 #define NEO_MAX_PLAYERS 32
 #define NEO_MAX_WEPNAME_STRLEN 19
@@ -34,7 +34,7 @@ char g_sReloadSounds_Primary[][] = {
     "weapons/zr68/zr68L_Reload.wav",
     // In reality, it's one of the multiple random variants,
     // but this is good enough for now.
-    "weapons/murata/murata_insert_shell1.wav",
+    "",
     "weapons/m41/m41_reload.wav",
     "weapons/m41/m41_reload.wav",
     "weapons/mx/mx_reload.wav",
