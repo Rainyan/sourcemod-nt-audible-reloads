@@ -6,11 +6,17 @@
 
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.1.0"
+#define PLUGIN_VERSION "0.2.0"
 
 #define NEO_MAX_PLAYERS 32
 #define NEO_MAX_WEPNAME_STRLEN 19
 #define VTABLE_OFFSET_RELOAD 235
+// "<" is CHAR_DIRECTIONAL, ")" is CHAR_SPATIALSTEREO.
+// The directionality doesn't really work with the source material, but make the best out of it.
+#define SOUND_CHARACTERS "<)"
+// Default level of 75 felt too loud, and the next named value at 60 too quiet,
+// so this is a value in-between those two.
+#define SNDLEVEL_RELOAD 67
 
 DynamicHook dh = null;
 
@@ -63,42 +69,47 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
+    char soundname[PLATFORM_MAX_PATH];
     char filebuff[PLATFORM_MAX_PATH];
     int i;
-    for (i = 0; i < sizeof(g_sReloadSounds_Primary); ++i)
+    for (i = 0; i < sizeof(weapons_primary); ++i)
     {
-        // Skipped entries
-        if (strlen(g_sReloadSounds_Primary[i]) == 0)
+        if (!GetReloadSoundOfWeapon(weapons_primary[i], soundname, sizeof(soundname)))
         {
             continue;
         }
         // FileExists is relative to root gamedir, but sound functions
         // auto-append the "sound" folder, so use a placeholder variable
         // here to confirm the file exists.
-        Format(filebuff, sizeof(filebuff), "sound/%s", g_sReloadSounds_Primary[i]);
+        Format(filebuff, sizeof(filebuff), "sound/%s", soundname);
         if (!FileExists(filebuff))
         {
-            SetFailState("Reload sound doesn't exist on server disk: \"%s\"",
-                g_sReloadSounds_Primary[i]);
+            SetFailState("Reload sound doesn't exist on server disk: \"%s\"", filebuff);
         }
-        if (!PrecacheSound(g_sReloadSounds_Primary[i]))
+        Format(filebuff, sizeof(filebuff), "%s%s", SOUND_CHARACTERS, soundname);
+        if (!PrecacheSound(soundname))
         {
-            SetFailState("Failed to precache sound: \"%s\"",
-                g_sReloadSounds_Primary[i]);
+            SetFailState("Failed to precache sound: \"%s\"", soundname);
         }
     }
-    for (i = 0; i < sizeof(g_sReloadSounds_Secondary); ++i)
+    for (i = 0; i < sizeof(weapons_secondary); ++i)
     {
-        Format(filebuff, sizeof(filebuff), "sound/%s", g_sReloadSounds_Secondary[i]);
+        if (!GetReloadSoundOfWeapon(weapons_secondary[i], soundname, sizeof(soundname)))
+        {
+            continue;
+        }
+        // FileExists is relative to root gamedir, but sound functions
+        // auto-append the "sound" folder, so use a placeholder variable
+        // here to confirm the file exists.
+        Format(filebuff, sizeof(filebuff), "sound/%s", soundname);
         if (!FileExists(filebuff))
         {
-            SetFailState("Reload sound doesn't exist on server disk: \"%s\"",
-                g_sReloadSounds_Secondary[i]);
+            SetFailState("Reload sound doesn't exist on server disk: \"%s\"", filebuff);
         }
-        if (!PrecacheSound(g_sReloadSounds_Secondary[i]))
+        Format(filebuff, sizeof(filebuff), "%s%s", SOUND_CHARACTERS, soundname);
+        if (!PrecacheSound(soundname))
         {
-            SetFailState("Failed to precache sound: \"%s\"",
-                g_sReloadSounds_Secondary[i]);
+            SetFailState("Failed to precache sound: \"%s\"", soundname);
         }
     }
 }
@@ -128,33 +139,30 @@ public void OnEntityCreated(int entity)
 
 // For a given Neotokyo weapon edict, passes the corresponding reload sound by reference.
 // Returns boolean of whether a reload sound was found for the weapon.
-bool GetReloadSoundOfWeapon(int weapon, char[] out_sound, const int out_sound_maxlen)
+bool GetReloadSoundOfWeapon(const char[] weapon_classname, char[] out_sound, const int out_sound_maxlen)
 {
-    if (!IsValidEdict(weapon))
-    {
-        return false;
-    }
-
-    char classname[NEO_MAX_WEPNAME_STRLEN + 1];
-    if (!GetEdictClassname(weapon, classname, sizeof(classname)))
-    {
-        return false;
-    }
-
     int i;
     for (i = 0; i < sizeof(weapons_primary); ++i)
     {
-        if (StrEqual(classname, weapons_primary[i]))
+        if (StrEqual(weapon_classname, weapons_primary[i]))
         {
-            return strcopy(out_sound, out_sound_maxlen, g_sReloadSounds_Primary[i]) > 0;
+            return strcopy(
+                out_sound,
+                out_sound_maxlen,
+                g_sReloadSounds_Primary[i]
+            ) > 0;
         }
     }
 
     for (i = 0; i < sizeof(weapons_secondary); ++i)
     {
-        if (StrEqual(classname, weapons_secondary[i]))
+        if (StrEqual(weapon_classname, weapons_secondary[i]))
         {
-            return strcopy(out_sound, out_sound_maxlen, g_sReloadSounds_Secondary[i]) > 0;
+            return strcopy(
+                out_sound,
+                out_sound_maxlen,
+                g_sReloadSounds_Secondary[i]
+            ) > 0;
         }
     }
 
@@ -202,9 +210,15 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
         return MRES_Ignored;
     }
 
+    char classname[NEO_MAX_WEPNAME_STRLEN + 1];
+    if (!GetEdictClassname(edict, classname, sizeof(classname)))
+    {
+        return MRES_Ignored;
+    }
+
     char audio_sample[PLATFORM_MAX_PATH];
     // Can happen if trying to reload something like the knife
-    if (!GetReloadSoundOfWeapon(edict, audio_sample, sizeof(audio_sample)))
+    if (!GetReloadSoundOfWeapon(classname, audio_sample, sizeof(audio_sample)))
     {
         return MRES_Ignored;
     }
@@ -233,7 +247,7 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
         owner,
         // Need to set streaming type channel to avoid stepping over existing sounds
         SNDCHAN_STATIC,
-        _,
+        SNDLEVEL_RELOAD,
         _,
         _,
         _,
