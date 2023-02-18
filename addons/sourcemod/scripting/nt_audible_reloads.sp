@@ -71,7 +71,7 @@ public void OnMapStart()
         {
             continue;
         }
-        // FileExists is based on root gamedir, but sound functions
+        // FileExists is relative to root gamedir, but sound functions
         // auto-append the "sound" folder, so use a placeholder variable
         // here to confirm the file exists.
         Format(filebuff, sizeof(filebuff), "sound/%s", g_sReloadSounds_Primary[i]);
