@@ -174,8 +174,8 @@ bool GetReloadSoundOfWeapon(const char[] weapon_classname, char[] out_sound, con
     return false;
 }
 
-// For a given int array arr of size num_values, pass by refence to array out_arr all of its values that are not equal to unique_value_to_filter.
-// Assumes out_arr will be of size num_values-1.
+// For a given int array arr of size num_values, pass by refence to array out_arr all of its values in range (0, num_values) that are not equal to unique_value_to_filter.
+// Assumes out_arr will be able to contain at least num_values-1 values.
 // Returns the number of elements passed into out_arr.
 int FilterUniqueValueFromArray(const int[] arr, int num_values, int unique_value_to_filter, int[] out_arr)
 {
@@ -257,6 +257,8 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
         _,
         _,
         _,
+        // Already specifying to emit from owner, but passing the actual coordinates
+        // in since we already have them available here anyway.
         pos
     );
 
