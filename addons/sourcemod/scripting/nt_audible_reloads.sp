@@ -6,7 +6,7 @@
 
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.3.0"
+#define PLUGIN_VERSION "0.4.0"
 
 #define NEO_MAX_PLAYERS 32
 #define NEO_MAX_WEPNAME_STRLEN 19
@@ -17,6 +17,8 @@
 // Default level of 75 felt too loud, and the next named value at 60 too quiet,
 // so this is a value in-between those two.
 #define SNDLEVEL_RELOAD 67
+// In Hammer units
+#define MAX_AUDIBLE_DISTANCE 512.0
 
 DynamicHook dh = null;
 
@@ -191,6 +193,22 @@ int FilterUniqueValueFromArray(const int[] arr, int num_values, int unique_value
     return num_out;
 }
 
+int FilterByDistance(float distance_sqr, const int[] client_arr, int num_values, const float pos[3],
+    int[] out_arr)
+{
+    int num_out = 0;
+    float client_pos[3];
+    for (int i = 0; i < num_values; ++i)
+    {
+        GetClientAbsOrigin(client_arr[i], client_pos);
+        if (GetVectorDistance(client_pos, pos, true) <= distance_sqr)
+        {
+            out_arr[num_out++] = client_arr[i];
+        }
+    }
+    return num_out;
+}
+
 // Detour of the weapon reload.
 // The post-hook value of hReloadSuccessful returns true if the reload is successful
 // (ie. has enough ammo, is allowed to reload...).
@@ -244,6 +262,16 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
     int[] audience_sans_owner = new int[num_audience - 1];
     // Filter the gun owner, because they'll already hear their own reload
     num_audience = FilterUniqueValueFromArray(audience, num_audience, owner, audience_sans_owner);
+
+    // The audible distance algorithm sucks so roll our own
+    num_audience = FilterByDistance(
+        // Squared, because compared against squared Euclidean dist for perf
+        MAX_AUDIBLE_DISTANCE * MAX_AUDIBLE_DISTANCE,
+        audience_sans_owner,
+        num_audience,
+        pos,
+        audience_sans_owner
+    );
 
     EmitSound(
         audience_sans_owner,
