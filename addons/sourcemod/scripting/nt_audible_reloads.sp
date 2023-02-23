@@ -6,7 +6,7 @@
 
 #include <neotokyo>
 
-#define PLUGIN_VERSION "0.4.0"
+#define PLUGIN_VERSION "0.4.1"
 
 #define NEO_MAX_PLAYERS 32
 #define NEO_MAX_WEPNAME_STRLEN 19
@@ -263,6 +263,11 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
     // Filter the gun owner, because they'll already hear their own reload
     num_audience = FilterUniqueValueFromArray(audience, num_audience, owner, audience_sans_owner);
 
+    if (num_audience == 0)
+    {
+        return MRES_Ignored;
+    }
+
     // The audible distance algorithm sucks so roll our own
     num_audience = FilterByDistance(
         // Squared, because compared against squared Euclidean dist for perf
@@ -272,6 +277,11 @@ public MRESReturn OnReload(int edict, DHookReturn hReloadSuccessful)
         pos,
         audience_sans_owner
     );
+
+    if (num_audience == 0)
+    {
+        return MRES_Ignored;
+    }
 
     EmitSound(
         audience_sans_owner,
